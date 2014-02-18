@@ -1,0 +1,649 @@
+%File: formatting-instruction.tex
+\documentclass[letterpaper]{article}
+\usepackage{aaai}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+
+% \usepackage{verbatim} %% verbatiminput, just while editing draft.
+
+\usepackage{fancyvrb}
+\fvset{fontsize=\tiny}
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{}
+\RecustomVerbatimCommand{\VerbatimInput}{VerbatimInput}{fontsize=\footnotesize}
+
+\frenchspacing
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+\pdfinfo{
+% /Specifying Narrative Simulations in a Linear Logical Framework}
+/Specifying Generative Story Worlds in a Linear Logical Framework}
+
+% /Author (Put All Your Authors Here, Separated by Commas)}
+\setcounter{secnumdepth}{0}  
+ \begin{document}
+% The file aaai.sty is the style file for AAAI Press 
+% proceedings, working notes, and technical reports.
+%
+% \title{Specifying Narrative Simulations in a Linear Logical Framework}
+\title{Specifying Generative Story Worlds in a Linear Logical Framework}
+\author{Anonymous} %% Double blind reviewing
+\maketitle
+\begin{abstract}
+\begin{quote}
+Having identified linear logic programming-based frameworks as viable for
+specifying and analyzing the causal structure of stories, we investigate
+the use of such a framework for specifying story-{\em worlds}, or
+settings where generalized narrative actions have uniform effects (not
+specific to a particular set of characters or setting elements). We show a
+sizeable example of a story world specified in the language Celf and
+discuss its interpretation as a story-generating program, a simulation, and
+an interactive narrative.
+\end{quote}
+\end{abstract}
+
+\section{Introduction}
+
+% \input{introduction.tex}
+
+Designers and scholars have long been seeking and proposing suitable
+notions of ``emergence'' in interactive fiction -- many talk about wanting
+to codify richly general behavior, but some talk about the inevitability of
+unmanagable consequences of doing so. 
+
+Our work proposes the use of a logical framework for specifying emergent
+systems for narrative worlds. The particular framework in question is based
+on constructive linear logic, which offers not only a general planning-like
+language for describing actions and their effects on the world, but also a
+tractable basis for the analysis of storylines and causal relationships.
+This framework lets us have our cake (in the sense of designing narratives
+with richly-interacting processes) and eat it, too (in the sense of
+predicting, analyzing, and controlling the consequences of such processes).
+
+For the sake of avoiding vague language like ``emergence'' and
+``generativiity'' in our further discussion, we will narrow our scope to a
+few particular mechanisms for achieving those ``feelings'' in a game:
+specifically, we demonstrate rules that are {\em general} in the sense that
+they are parameterized over world states, settings, and characters in a
+precise way; we also demonstrate that the rules create {\em feedback loops}
+in terms of their causal structure, allowing for long and perhaps
+unpredictable chains of events to create interesting stories without being
+individually authored.
+
+Choosing to specify systems in logical frameworks lets us use tools to
+analyze those systems. In the specific case of narratives and games, it
+helps us explore the consequences of our perhaps haphazardly-conceived,
+ad-hoc, general rules of interaction and iterate upon them rapidly. The
+primary tool available to us currently is the random generation of stories
+through specification by a set of linear logic rules.
+
+% XXX don't overpromise
+% The author is also
+% working on developing a more complete suite of analysis capabilities, akin
+% to model checking, that would allow an interactive story author to predict
+% and control the range of narrative possibilities, perhaps choosing to
+% restrict them to a more linear causality tree (in the case of a rigid
+% narrative) or relax the constraints (in the case of a sandbox world of
+% social or physical interactions).
+
+\section{Example: A Romantic Tragedy Story-World}
+
+% \input{example.tex}
+
+The way that stories are specified in our system is with approximately the
+following workflow:
+\begin{enumerate}
+\item Identify the components of story state, such as physical location,
+character relationships, and each character's access to resources. Declare
+a predicate (type) for each of these; for example, to declare that
+\verb|anger C C'| is a well-formed state component representing \verb|C|
+being angry at \verb|C'|, declare  
+\verb|anger : character -> character -> type|.
+\item Identify the {\em narrative actions}, i.e. ways that characters can
+interact with each other or their environs to cause changes in the state.
+For instance, a rule for flirting with a character other than one's lover
+may cause anger in the lover directed at both flirters, which is
+represented by the rule
+\begin{verbatim}
+do/flirt/conflict 
+: at C L * at C' L * at C'' L *
+  eros C C' * eros C'' C
+                -o {eros C C' * eros C' C * eros C' C'' 
+                    * anger C'' C' * anger C'' C
+                    * at C L * at C' L * at C'' L}.
+\end{verbatim}
+Effectively, such rules can be read as a directive to the system, ``replace
+the state described to the left of \verb|-o| with the state described to
+the right of it.''
+\end{enumerate}
+
+A complete story-world specification is simply a collection of these predicate
+and rule declarations.
+
+We can join it with its complementary half, a specification of setting
+elements, characters, and initial states, to generate stories or analyse
+the system we have described.
+
+The remainder of this section carries out an example following the
+aforementioned workflow.
+
+The state we model includes sentiments between characters (several forms of
+love and hate), physical locations and basic movement, possession of key
+objects (such as weapons), relationship states (marriage and being single),
+desires for objects, and solitary emotions (depression).
+
+% XXX explain predicates, via a table
+
+A selection of rules for our chosen genre is given below:
+
+Romance module:
+\begin{verbatim}
+% eros to philia
+do/fallInLove
+: actor C * actor C' *
+  at C L * at C' L' *
+  eros C C'
+  -o {@at C L * @at C' L' * @eros C C' * @philia C C'}.
+
+% philia to eros
+do/eroticize
+: actor C * actor C' *
+  at C L * at C' L' *
+  philia C C' * philia C C' * philia C C' * philia C C'
+  -o {@at C L * @at C' L' * @philia C C' * @eros C C'}.
+
+do/flirt/ok
+: actor C * actor C' *
+  at C L * at C' L * eros C C' * unmarried C * unmarried C'
+               -o {@eros C C' * @eros C' C * 
+                    @unmarried C * @unmarried C' *
+                    @at C L * @at C' L}.
+do/flirt/discrete
+: actor C * actor C' *
+  at C L * at C' L * eros C C'
+  -o {@eros C C' * @eros C' C * @at C L * @at C' L}.
+
+do/flirt/conflict 
+: actor C * actor C' *
+  at C L * at C' L * at C'' L *
+  eros C C' * eros C'' C
+                -o {@eros C C' * @eros C' C * @eros C' C'' 
+                    * @anger C'' C' * @anger C'' C
+                    * @at C L * @at C' L * @at C'' L}.
+do/divorce
+: actor C * actor C' *
+  at C L * at C' L' *
+  married C C' * married C' C * anger C C' * anger C C'
+  -o {@anger C C' * @anger C' C * @unmarried C * @unmarried C'
+      * @at C L * @at C' L'}.
+
+do/widdow
+: actor C * actor C' *
+  married C C' * at C L * dead C'
+  -o {@unmarried C * @at C L}.
+
+do/marry 
+: actor C * actor C' *
+  % at C temple * at C' temple * 
+  at C L * at C' L * 
+  eros C C' * philia C C' * 
+  eros C' C * philia C' C * 
+  unmarried C * unmarried C'
+             % * has C money
+               -o {@married C C' * @married C' C * @at C L * @at C' L *
+                    @eros C C' * @eros C' C *
+                    @philia C C' * @philia C' C }.
+
+do/formOpinion/like
+: actor C * actor C' *
+  at C L * at C' L *
+  neutral C C'
+  -o {@at C L * @at C' L * @philia C C'}.
+
+do/formOpinion/dislike
+: actor C * actor C' *
+  at C L * at C' L *
+  neutral C C'
+  -o {@at C L * @at C' L * @anger C C'}.
+\end{verbatim}
+
+Violence module:
+\begin{verbatim}
+do/murder 
+: actor C * actor C' *
+  anger C C' * anger C C' * anger C C' * @anger C C' *
+  at C L * at C' L  * nchars (s N) * has C weapon
+                -o {@at C L * !dead C' * !murdered C C' * @nchars N *
+                      @has C weapon}.
+
+do/becomeSuicidal
+: actor C *
+  at C L *
+  depressed C * depressed C * depressed C * depressed C
+  -o {@at C L * @suicidal C * @wants C weapon}.
+
+do/comfort
+: actor C * actor C' *
+  at C L * at C' L *
+  suicidal C' * philia C C' * @philia C' C
+  -o {@at C L * @at C' L * 
+      @philia C C' * @philia C' C * @philia C' C}.
+
+do/suicide
+: actor C * 
+  at C L * 
+  suicidal C *
+  has C weapon *
+  nchars (s N)
+ -o {@nchars N * !dead C}. 
+
+do/mourn 
+: actor C * actor C' *
+  at C L * philia C C' * dead C' 
+  -o {@at C L * @depressed C * @depressed C}. % * @remembered C'}.
+
+do/thinkVengefully
+: actor C * actor Killer * actor Dead *
+  at C L * at Killer L' * 
+  philia C Dead * murdered Killer Dead
+  -o {@at C L * @at Killer L' * @philia C Dead *
+      @anger C Killer * @anger C Killer}.
+
+\end{verbatim}
+
+Things that can affect sentiment and possession:
+\begin{verbatim}
+do/give
+ : actor C * actor C' *
+   at C L * at C' L * has C O * wants C' O * philia C C'
+         -o {@at C L * @at C' L * @has C' O * @philia C C'}.
+
+do/steal
+  : actor C' * actor C * 
+    at C L * at C' L * has C O * wants C' O
+         -o {@at C L * @at C' L * @has C' O * @anger C C'}.
+
+do/loot
+  : actor C * actor C' *
+    at C L * dead C' * has C' O * wants C O
+    -o {@at C L * @has C O}.
+
+do/compliment/private
+: actor C * actor C' *
+  at C L * at C' L * @philia C C' -o
+          {@at C L * @at C' L * @philia C C' * @philia C' C}.
+
+do/compliment/witnessed
+: actor C * actor C' * actor Witness *
+  at C L * at C' L * at Witness L * @philia C C' *
+  anger Witness C' -o
+          {@at C L * @at C' L * @at Witness L * @philia C C' * @anger Witness C'  
+            * @philia C' C * @anger Witness C}.
+
+do/insult/private
+: actor C * actor C' *
+  at C L * at C' L * @anger C C' -o
+          {@at C L * @at C' L * @anger C C' * @anger C' C * @depressed C'}.
+
+do/insult/witnessed
+: actor C * actor C' * actor Witness *
+  at C L * at C' L * at Witness L * @anger C C' * philia Witness C' -o
+          {@at C L * @at C' L * @at Witness L * @anger C C' * 
+            @philia Witness C' * @anger C' C * @depressed C' * @anger Witness C}.
+
+mixed_feelings 
+: actor C * actor C' * at C L * 
+  anger C C' * philia C C' -o {@at C L * @neutral C C'}.
+\end{verbatim}
+
+Some concluding remarks
+
+
+\section{Proofs as Stories}
+
+% \input{traces.tex}
+
+here we can say how stuff actually matches up to linear logic, which is an
+internally sound/complete proof system with well-behaved metatheoretic
+properties et cetera.
+
+constructive logic is totally awesome because the process of executing the
+program gives us a structured witness to examine, complete with dependency
+structure
+
+lambda terms
+
+monadic terms
+
+sample trace output
+
+Some discussion of what happens if we include, exclude, or vary the rules -
+variations on the specification that work like ``knobs'' in the story
+output
+
+\section{Programmatic Analysis}
+
+% \input{analysis.tex}
+discussion of the celf-to-graph tool and potential application to this work
+
+\section{Discussion and Ongoing Work}
+
+cite thesis proposal
+
+adding player interaction
+
+% \input{discussion.tex}
+
+% \section{Conclusion}
+
+% \input{conclusion.tex}
+
+\appendix
+
+% XXX appendix heading?
+% XXX oversize code listing for columns
+\section{Full code listing for example}
+
+
+% \begin{verbatim}
+% 
+% %% Generalized Shakespearean tragedy, instantiated with Romeo & Juliet as a
+% %% case study.
+% 
+% nat : type. z : nat. s : nat -> nat.
+% leq : nat -> nat -> type.
+% leq/z : leq z N.
+% leq/s : leq (s N) (s M)
+%          <- leq N M.
+% time : nat -> type.
+% nchars : nat -> type.
+% 
+% character : type.
+% actor : character -> type.
+% location : type.
+% accessible : location -> location -> type.
+% object : type.
+% 
+% % a useful kind of object for the genre.
+% weapon : object.
+% 
+% % states
+% dead : character -> type.
+% murdered : character -> character -> type.
+% at : character -> location -> type.
+% has : character -> object -> type.
+% wants : character -> object -> type.
+% married : character -> character -> type.
+% unmarried : character -> type.
+% anger : character -> character -> type.
+% % storge : character -> character -> type.
+% eros : character -> character -> type.
+% philia : character -> character -> type.
+% neutral : character -> character -> type.
+% depressed : character -> type.
+% suicidal : character -> type.
+% % bored : character -> type.
+% boredom : type.
+% 
+% % C travels to be near C'.
+% do/travelTo
+% : actor C * actor C' *
+%   philia C C' * at C' L' *
+%   at C L * accessible L L'
+%   -o {@philia C C' * @at C' L' * @at C L'}.
+% 
+% % do/travelFrom
+% % : actor C *
+% %   at C L * at C' L * hates C C'
+% %  accessible L L'
+% %  -o  {@at C L' * @at C' L * @hates C C'}.
+% 
+% % do/getbored
+% % : actor C *
+% %  boredom *
+% %  at C L -o {@bored C}.
+% 
+% do/travelBored
+% : actor C *
+%   at C L * accessible L L' * boredom * boredom
+%   -o {@at C L'}.
+% 
+% % eros to philia
+% do/fallInLove
+% : actor C * actor C' *
+%   at C L * at C' L' *
+%   eros C C'
+%   -o {@at C L * @at C' L' * @eros C C' * @philia C C'}.
+% 
+% % philia to eros
+% do/eroticize
+% : actor C * actor C' *
+%   at C L * at C' L' *
+%   philia C C' * philia C C' * philia C C' * philia C C'
+%   -o {@at C L * @at C' L' * @philia C C' * @eros C C'}.
+% 
+% do/flirt/ok
+% : actor C * actor C' *
+%   at C L * at C' L * eros C C' * unmarried C * unmarried C'
+%                -o {@eros C C' * @eros C' C * 
+%                     @unmarried C * @unmarried C' *
+%                     @at C L * @at C' L}.
+% do/flirt/discrete
+% : actor C * actor C' *
+%   at C L * at C' L * eros C C'
+%   -o {@eros C C' * @eros C' C * @at C L * @at C' L}.
+% 
+% do/flirt/conflict 
+% : actor C * actor C' *
+%   at C L * at C' L * at C'' L *
+%   eros C C' * eros C'' C
+%                 -o {@eros C C' * @eros C' C * @eros C' C'' 
+%                     * @anger C'' C' * @anger C'' C
+%                     * @at C L * @at C' L * @at C'' L}.
+% do/divorce
+% : actor C * actor C' *
+%   at C L * at C' L' *
+%   married C C' * married C' C * anger C C' * anger C C'
+%   -o {@anger C C' * @anger C' C * @unmarried C * @unmarried C'
+%       * @at C L * @at C' L'}.
+% 
+% do/widdow
+% : actor C * actor C' *
+%   married C C' * at C L * dead C'
+%   -o {@unmarried C * @at C L}.
+% 
+% do/marry 
+% : actor C * actor C' *
+%   % at C temple * at C' temple * 
+%   at C L * at C' L * 
+%   eros C C' * philia C C' * 
+%   eros C' C * philia C' C * 
+%   unmarried C * unmarried C'
+%              % * has C money
+%                -o {@married C C' * @married C' C * @at C L * @at C' L *
+%                     @eros C C' * @eros C' C *
+%                     @philia C C' * @philia C' C }.
+% % do/famtalk/like
+% % : actor C * actor C' *
+% %   at C L * at C' L *
+% %   family C C'
+% %   -o {@at C L * @at C' L * @philia C C'}.
+% % 
+% % do/famtalk/hate
+% % : actor C * actor C' *
+% %   at C L * at C' L *
+% %   family C C'
+% %   -o {@at C L * @at C' L * @anger C C'}.
+% 
+% do/formOpinion/like
+% : actor C * actor C' *
+%   at C L * at C' L *
+%   neutral C C'
+%   -o {@at C L * @at C' L * @philia C C'}.
+% 
+% do/formOpinion/dislike
+% : actor C * actor C' *
+%   at C L * at C' L *
+%   neutral C C'
+%   -o {@at C L * @at C' L * @anger C C'}.
+% 
+% do/murder 
+% : actor C * actor C' *
+%   anger C C' * anger C C' * anger C C' * @anger C C' *
+%   at C L * at C' L  * nchars (s N) * has C weapon
+%                 -o {@at C L * !dead C' * !murdered C C' * @nchars N *
+%                       @has C weapon}.
+% 
+% do/becomeSuicidal
+% : actor C *
+%   at C L *
+%   depressed C * depressed C * depressed C * depressed C
+%   -o {@at C L * @suicidal C * @wants C weapon}.
+% 
+% do/comfort
+% : actor C * actor C' *
+%   at C L * at C' L *
+%   suicidal C' * philia C C' * @philia C' C
+%   -o {@at C L * @at C' L * 
+%       @philia C C' * @philia C' C * @philia C' C}.
+% 
+% do/suicide
+% : actor C * 
+%   at C L * 
+%   suicidal C *
+%   has C weapon *
+%   nchars (s N)
+%  -o {@nchars N * !dead C}. 
+% 
+% do/give
+%  : actor C * actor C' *
+%    at C L * at C' L * has C O * wants C' O * philia C C'
+%          -o {@at C L * @at C' L * @has C' O * @philia C C'}.
+% 
+% do/steal
+%   : actor C' * actor C * 
+%     at C L * at C' L * has C O * wants C' O
+%          -o {@at C L * @at C' L * @has C' O * @anger C C'}.
+% 
+% do/loot
+%   : actor C * actor C' *
+%     at C L * dead C' * has C' O * wants C O
+%     -o {@at C L * @has C O}.
+% 
+% do/compliment/private
+% : actor C * actor C' *
+%   at C L * at C' L * @philia C C' -o
+%           {@at C L * @at C' L * @philia C C' * @philia C' C}.
+% 
+% do/compliment/witnessed
+% : actor C * actor C' * actor Witness *
+%   at C L * at C' L * at Witness L * @philia C C' *
+%   anger Witness C' -o
+%           {@at C L * @at C' L * @at Witness L * @philia C C' * @anger Witness C'  
+%             * @philia C' C * @anger Witness C}.
+% 
+% do/insult/private
+% : actor C * actor C' *
+%   at C L * at C' L * @anger C C' -o
+%           {@at C L * @at C' L * @anger C C' * @anger C' C * @depressed C'}.
+% 
+% do/insult/witnessed
+% : actor C * actor C' * actor Witness *
+%   at C L * at C' L * at Witness L * @anger C C' * philia Witness C' -o
+%           {@at C L * @at C' L * @at Witness L * @anger C C' * 
+%             @philia Witness C' * @anger C' C * @depressed C' * @anger Witness C}.
+% 
+% do/mourn 
+% : actor C * actor C' *
+%   at C L * philia C C' * dead C' 
+%   -o {@at C L * @depressed C * @depressed C}. % * @remembered C'}.
+% 
+% do/thinkVengefully
+% : actor C * actor Killer * actor Dead *
+%   at C L * at Killer L' * 
+%   philia C Dead * murdered Killer Dead
+%   -o {@at C L * @at Killer L' * @philia C Dead *
+%       @anger C Killer * @anger C Killer}.
+% 
+% mixed_feelings 
+% : actor C * actor C' * at C L * 
+%   anger C C' * philia C C' -o {@at C L * @neutral C C'}.
+% 
+% %% stuff to force quiescence
+% maxtime : nat =
+%   s (s (s (s (s (s z))))).
+% time_passes 
+%   : time T * nchars (s N)
+%     -o {@time (s T) * @nchars (s N) * @boredom}.
+% story_over : nchars z * time z -o {1}.
+% die_of_old_age 
+% : actor C *
+%   at C L * time T * nchars (s N) * leq maxtime T 
+%   -o {!dead C * @time z * @nchars N}.
+% 
+% 
+% % story-specific terms.
+% romeo : character.
+% juliet : character.
+% montague : character.
+% capulet : character.
+% mercutio : character.
+% nurse : character.
+% tybalt : character.
+% apothecary : character.
+% 
+% mon_house : location.
+% cap_house : location.
+% town : location.
+% 
+% % story-specific permastates
+% mon/town : accessible mon_house town.
+% town/mon : accessible town mon_house.
+% cap/town : accessible cap_house town.
+% town/cap : accessible town cap_house.
+% 
+% a-romeo : actor romeo.
+% a-juliet : actor juliet.
+% a-montague : actor montague.
+% a-capulet : actor capulet.
+% a-mercutio : actor mercutio.
+% a-nurse : actor nurse.
+% a-tybalt : actor tybalt.
+% a-apothecary : actor apothecary.
+% 
+% %% initial state
+% 
+% init : type
+% = { @at romeo town * @at montague mon_house * @at capulet cap_house
+%   * @at mercutio town * @at nurse cap_house * @at juliet town
+%   * @at tybalt town * @at apothecary town
+% 
+%   * @unmarried romeo * @unmarried juliet 
+%   * @unmarried nurse * @unmarried mercutio * @unmarried tybalt
+%   * @unmarried apothecary
+% 
+%   * @anger montague capulet * @anger capulet montague
+%   * @anger tybalt romeo * @anger capulet romeo * @anger montague tybalt
+% 
+%   * @philia mercutio romeo * @philia romeo mercutio
+%   * @philia montague romeo * @philia capulet juliet
+%   % "lust at first sight"
+%   * {@(Pi L. at romeo L * at juliet L 
+%         -o {@eros romeo juliet * @at romeo L * @at juliet L})}
+% 
+%   * @has tybalt weapon * @has romeo weapon * @has apothecary weapon
+% 
+%   * @philia juliet nurse * @philia nurse juliet
+%   * @neutral nurse romeo % * !family juliet tybalt
+%   * @neutral mercutio juliet * @neutral juliet mercutio
+%   * @neutral apothecary nurse * @neutral nurse apothecary
+% 
+%   * @time z * @nchars (s (s (s (s (s (s (s (s z))))))))}.
+% 
+% % #trace * init.
+% 
+% #query * * * 5 init -o {1}.
+% \end{verbatim}
+
+
+\end{document}
