@@ -1,0 +1,146 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pervasive definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Notation
+\newcommand{\ldot}{.\,}
+\newcommand{\vd}{\null\mathrel{\vdash}}
+\newcommand{\lb}{{[\![}}
+\newcommand{\rb}{{]\!]}}
+\newcommand{\op}[1]{\operatorname{#1}}
+
+% Judgments
+\newcommand{\jtrue}{\;\mbox{\it true}}
+\newcommand{\jlax}{\;\mbox{\it lax}}
+
+% seq calc
+\newcommand{\proves}{\Rightarrow}
+\newcommand{\up}{{\uparrow}}
+\newcommand{\down}{{\downarrow}}
+
+% Propositions
+% \newcommand{\land}{\mathop{\wedge}}
+\newcommand{\limplies}{\mathop{\supset}}
+\newcommand{\ltrue}{\top}
+% \newcommand{\lor}{\mathop{\vee}}
+\newcommand{\lfalse}{\bot}
+\newcommand{\lequiv}{\mathop{\equiv}}
+\newcommand{\lbox}{\Box}
+\newcommand{\ldia}{\Diamond}
+% linear logic
+\newcommand{\one}{\mathrm{1}}
+\newcommand{\lolli}{\multimap}
+\newcommand{\tensor}{\otimes}
+\newcommand{\Tensor}{\bigotimes}
+\newcommand{\bang}{!}
+\newcommand{\mon}[1]{\{#1\}}
+\newcommand{\with}{\&}
+\newcommand{\aff}{@}
+
+
+% Proofs
+\newcommand{\ddd}{\raisebox{0.2em}[1.1em]{$\vdots$}}
+\newcommand{\DD}{\mathcal{D}}
+\newcommand{\EE}{\mathcal{E}}
+\newcommand{\FF}{\mathcal{F}}
+\newcommand{\GG}{\mathcal{G}}
+
+% Judgments on proofs
+\newcommand{\lred}{\mathrel{\raisebox{0.5em}{$\Longrightarrow_R$}}}
+\newcommand{\lexp}{\mathrel{\raisebox{0.5em}{$\Longrightarrow_E$}}}
+\newcommand{\lowerproof}[1]{\raisebox{-0.9em}{$#1$}}
+
+
+\newcommand{\hastype}{\mathrel{:}}
+\newcommand{\oftp}{\mathord{:}}
+
+\newcommand{\lam}{\lambda}
+\newcommand{\arrow}{\rightarrow}
+% \newcommand{\fst}{\mbox{\bf fst}}
+% \newcommand{\snd}{\mbox{\bf snd}}
+\newcommand{\fst}{\pi_1}
+\newcommand{\snd}{\pi_2}
+\newcommand{\cross}{\mathop{\times}}
+
+\newcommand{\unit}{\langle\,\rangle}
+
+\newcommand{\inl}{\mbox{\bf inl}}
+\newcommand{\inr}{\mbox{\bf inr}}
+% \newcommand{\inl}{\iota_1}
+% \newcommand{\inr}{\iota_2}
+\newcommand{\ccase}{\mbox{\bf case}}
+\newcommand{\oof}{\mathrel{\mbox{\bf of}}}
+\newcommand{\bbar}{\mathrel{\mid}}
+\newcommand{\plus}{\mathop{+}}
+
+\newcommand{\abort}{\mbox{\bf abort}}
+\newcommand{\zero}{\mbox{\bf 0}}
+
+\newcommand{\pabort}{\mbox{\bf pabort}}
+\newcommand{\pcase}{\mbox{\bf pcase}}
+
+\newcommand{\pbox}{\mbox{\bf box}}
+\newcommand{\letbox}{\mbox{\bf letbox}}
+
+\newcommand{\pdia}{\mbox{\bf dia}}
+\newcommand{\letdia}{\mbox{\bf letdia}}
+
+\newcommand{\red}{\mathrel{\Longrightarrow}_R}
+\renewcommand{\exp}{\mathrel{\Longrightarrow}_E}
+% \newcommand{\jtype}{\mbox{\it type}}
+
+% \newcommand{\nat}{\mathsf{nat}}
+% \newcommand{\z}{\mathsf{0}}
+% \newcommand{\s}{\mathsf{s}}
+
+% \newcommand{\of}{{:}}
+% \newcommand{\llet}{\mbox{\bf let}}
+ \newcommand{\iin}{\mathrel{\mbox{\bf in}}}
+
+% % Chapter 3: Proof Search
+% \newcommand{\seq}{\Longrightarrow}
+% \newcommand{\sq}{\longrightarrow}
+
+% substitution
+\newcommand{\psub}[1]{\langle\langle #1 \rangle\rangle}
+
+
+%%% cmartens clf stuff
+
+\newcommand{\LF}{LF} % for the LF signature
+
+% operational judgments
+\newcommand{\stepsto}{\rightsquigarrow}
+%"proves in the focusing system"
+\newcommand{\fproves}{\Longrightarrow}
+\newcommand{\atm}[1]{\mathsf{#1}}
+\newcommand{\stable}[1]{#1\mathsf{\ stable}}
+
+% epsilons
+\newcommand{\eps}{\epsilon}
+\newcommand{\bnd}{\mathit{bnd}}
+\newcommand{\nileps}{\langle\rangle}
+% \newcommand{\gets}{\leftarrow}
+% \newcommand{\gets}{=}
+
+% phases
+\newcommand{\type}{\mathsf{type}}
+\newcommand{\phase}{\mathsf{phase}}
+\renewcommand{\brack}[2]{[#1]^{#2}}
+\newcommand{\qui}[1]{\mathtt{qui}\ #1}
+\newcommand{\pha}[1]{\mathtt{phase}\ #1}
+
+%modules
+% \newcommand{\module}{\mathsf{module}}
+
+% meta
+\newcommand{\notmod}{\nvDash} % XXX?
+
+% subordination
+\newcommand{\subord}{\prec}
+\newcommand{\nsubord}{\nprec}
+\newcommand{\inits}{\mathsf{initials}}
+\newcommand{\terms}{\mathsf{terminals}}
+\newcommand{\interms}{\mathsf{intermediates}}
+
+

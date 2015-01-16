@@ -4,6 +4,51 @@
 \usepackage{times}
 \usepackage{helvet}
 \usepackage{courier}
+\usepackage{graphicx}
+\usepackage{url}
+
+\usepackage{amsmath, amssymb}
+% \input{cm-macros.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pervasive definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Notation
+\newcommand{\ldot}{.\,}
+\newcommand{\vd}{\null\mathrel{\vdash}}
+\newcommand{\lb}{{[\![}}
+\newcommand{\rb}{{]\!]}}
+\newcommand{\op}[1]{\operatorname{#1}}
+
+% Judgments
+\newcommand{\jtrue}{\;\mbox{\it true}}
+\newcommand{\jlax}{\;\mbox{\it lax}}
+
+% seq calc
+\newcommand{\proves}{\Rightarrow}
+\newcommand{\up}{{\uparrow}}
+\newcommand{\down}{{\downarrow}}
+
+% Propositions
+% \newcommand{\land}{\mathop{\wedge}}
+\newcommand{\limplies}{\mathop{\supset}}
+\newcommand{\ltrue}{\top}
+% \newcommand{\lor}{\mathop{\vee}}
+\newcommand{\lfalse}{\bot}
+\newcommand{\lequiv}{\mathop{\equiv}}
+\newcommand{\lbox}{\Box}
+\newcommand{\ldia}{\Diamond}
+% linear logic
+\newcommand{\one}{\mathrm{1}}
+\newcommand{\lolli}{\multimap}
+\newcommand{\tensor}{\otimes}
+\newcommand{\Tensor}{\bigotimes}
+\newcommand{\bang}{!}
+\newcommand{\mon}[1]{\{#1\}}
+\newcommand{\with}{\&}
+\newcommand{\aff}{@}
+
+\newcommand{\stepsto}{\rightsquigarrow}
 
 % \usepackage{verbatim} %% verbatiminput, just while editing draft.
 
@@ -12,93 +57,221 @@
 \RecustomVerbatimEnvironment{verbatim}{Verbatim}{}
 \RecustomVerbatimCommand{\VerbatimInput}{VerbatimInput}{fontsize=\footnotesize}
 
+
 \frenchspacing
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
 \pdfinfo{
 % /Specifying Narrative Simulations in a Linear Logical Framework}
-/Specifying Generative Story Worlds in a Linear Logical Framework}
+% /Specifying Generative Story Worlds in a Linear Logic Programming Language}
+/Generative Story Worlds as Linear Logic Programs
+/Author Chris Martens, Jo\~{a}o F. Ferreira, Anne-Gwenn Bosser, Marc
+Cavazza}
 
-% /Author (Put All Your Authors Here, Separated by Commas)}
+\title{Generative Story Worlds as Linear Logic Programs}
+\author{
+Chris Martens \\ Carnegie Mellon University \\ \texttt{cmartens@cs.cmu.edu} \And
+Jo\~{a}o F. Ferreira \\ Teesside University \\
+\texttt{J.Ferreira@tees.ac.uk} \And
+Anne-Gwenn Bosser \\ ENI Brest\\ Lab-STICC UMR6285 \\
+\texttt{bosser@enib.fr} \And
+Marc Cavazza \\ Teesside University \\ \texttt{M.O.Cavazza@tees.ac.uk}
+}
+
+% \author[1]{Chris Martens}
+% \author[2]{Jo\~{a}o F. Ferreira}
+% \author[3]{Anne-Gwenn Bosser}
+% \author[2]{Marc Cavazza}
+%\affil[1]{Carnegie Mellon University}
+%\affil[2]{Teesside University}
+%\affil[3]{University of Brest}
+
+
 \setcounter{secnumdepth}{0}  
  \begin{document}
-% The file aaai.sty is the style file for AAAI Press 
-% proceedings, working notes, and technical reports.
-%
-% \title{Specifying Narrative Simulations in a Linear Logical Framework}
-\title{Specifying Generative Story Worlds in a Linear Logical Framework}
-\author{Anonymous} %% Double blind reviewing
+
 \maketitle
+
 \begin{abstract}
 \begin{quote}
-Having identified linear logic programming-based frameworks as viable for
-specifying and analyzing the causal structure of stories, we investigate
-the use of such a framework for specifying story-{\em worlds}, or
-settings where generalized narrative actions have uniform effects (not
-specific to a particular set of characters or setting elements). We show a
-sizeable example of a story world specified in the language Celf and
-discuss its interpretation as a story-generating program, a simulation, and
-an interactive narrative.
+Linear logic programming languages have been identified in prior
+work as viable for specifying stories and analyzing their causal structure.
+We investigate the use of such a language for specifying story {\em
+worlds}, or settings where generalized narrative actions have uniform
+effects (not specific to a particular set of characters or setting
+elements), which may create emergent behavior through feedback loops.
+
+We show a sizable example of a story world specified in the language Celf
+and discuss its interpretation as a story-generating program, a simulation,
+and an interactive narrative. Further, we show that the causal analysis
+tools available by virtue of using a proof-theoretic language for
+specification can assist the author in reasoning about the structure and
+consequences of emergent stories.
 \end{quote}
 \end{abstract}
 
 \section{Introduction}
+% \label{sec:intro}
 
 % \input{introduction.tex}
 
-Designers and scholars have long been seeking and proposing suitable
-notions of ``emergence'' in interactive fiction -- many talk about wanting
-to codify richly general behavior, but some talk about the inevitability of
-unmanagable consequences of doing so. 
+Linear logic~\cite{girard87linear} (LL) has been proposed as a suitable conceptual
+framework to specify and reason about interactive
+narratives~\cite{Bosser10}, which has led to a variety of applications such
+as narrative analysis~\cite{Bosser11}, narrative
+generation~\cite{Martens13:LPNMR}, and authoring and validation
+tools~\cite{DangHCS11}. At the same time, the success of
+logically-motivated languages such as Inform
+7\footnote{\url{http://www.inform7.com}} together with the documented
+interest of Interactive Fiction (IF) writers  for emergent
+narratives\footnote{See for instance Emily Short's article on emergence in
+narrative interaction design at
+\url{http://emshort.wordpress.com/2013/02/14/introducing-versu/}} suggests
+that the IF community may welcome a programming language approach to the
+authoring of rule-based, generative story worlds. 
 
-Our work proposes the use of a logical framework for specifying emergent
-systems for narrative worlds. The particular framework in question is based
-on constructive linear logic, which offers not only a general planning-like
-language for describing actions and their effects on the world, but also a
-tractable basis for the analysis of storylines and causal relationships.
-This framework lets us have our cake (in the sense of designing narratives
-with richly-interacting processes) and eat it, too (in the sense of
-predicting, analyzing, and controlling the consequences of such processes).
+Our work proposes the use of a logic programming language for specifying
+emergent systems representing narrative worlds. We use a language based on
+constructive LL, which supports action description, use of resources, and
+changes imposed on the story world, and offers a basis for {\em analysis}
+of storylines and causal relationships, all within the same theory of
+proof.  This approach lets us have our cake (in the sense of designing
+narratives with richly-interacting processes) and eat it, too (in the sense
+of predicting and controlling the consequences of such processes).
 
-For the sake of avoiding vague language like ``emergence'' and
-``generativiity'' in our further discussion, we will narrow our scope to a
-few particular mechanisms for achieving those ``feelings'' in a game:
-specifically, we demonstrate rules that are {\em general} in the sense that
-they are parameterized over world states, settings, and characters in a
-precise way; we also demonstrate that the rules create {\em feedback loops}
-in terms of their causal structure, allowing for long and perhaps
-unpredictable chains of events to create interesting stories without being
-individually authored.
+\section{Related Work}
 
-Choosing to specify systems in logical frameworks lets us use tools to
-analyze those systems. In the specific case of narratives and games, it
-helps us explore the consequences of our perhaps haphazardly-conceived,
-ad-hoc, general rules of interaction and iterate upon them rapidly. The
-primary tool available to us currently is the random generation of stories
-through specification by a set of linear logic rules.
+Planning systems have been widely adopted for the construction of
+interactive narratives~\cite{Young99,Porteous10}, mostly because of their
+support for the representation of causality. It is generally accepted that
+LL is a strong candidate for such a representation~\cite{GirardILL87}, and
+a proof in LL can be equated to a plan~\cite{Masseron93a,Masseron93b}.
+Aside from surface differences, such as LL predicates having
+meaningful multiplicity, the main benefit of using LL is that
+planning actions, plan synthesis, and plans themselves can all be accounted
+for uniformly under a minimal theory of inference and proof. 
 
-% XXX don't overpromise
-% The author is also
-% working on developing a more complete suite of analysis capabilities, akin
-% to model checking, that would allow an interactive story author to predict
-% and control the range of narrative possibilities, perhaps choosing to
-% restrict them to a more linear causality tree (in the case of a rigid
-% narrative) or relax the constraints (in the case of a sandbox world of
-% social or physical interactions).
+% The proof-theoretic treatment we present opens the doors to extensibility
+% (integration with orthogonal logical operators and features such as
+% recursion~\cite{Cresswell2000deductive}), transformation techniques from
+% compiler theory, and other work from decades of research in type theory and
+% constructive proof theory. We see a logical basis for plans as something
+% like another arm of the Curry-Howard correspondence (proofs as programs;
+% surveyed recently in~\cite{Wadler14PropsAsTypes}), and expect in the long
+% term to derive similar research benefits.
 
-\section{Example: A Romantic Tragedy Story-World}
+Standard logic programming approaches to narratives provide evidence for
+the concise and readable nature of declarative
+specification~\cite{Grasbon01,Lang99} but lack the native ability to model
+state and causality afforded by LL. One logic programming engine for
+managing generativity in games uses the Event Calculus (EC) to overcome this
+shortcoming~\cite{Smith11}.
 
-% \input{example.tex}
+% For one account of linear logic's relationship to EC, see (cite Iliano?
+% Alexiev? XXX).
 
-The way that stories are specified in our system is with approximately the
-following workflow:
+LL has previously been explored for game analysis, as a front-end for Petri
+nets~\cite{Colle2005}.  Further development demonstrated the value in using
+a {\em constructive} formulation of LL to directly correlate the formal
+notion of {\em story} with the notion of logical
+proof~\cite{Bosser10,Bosser11}. Dang investigated LL for complete
+exploration and validation of scenarios for educational
+purposes~\cite{DangCA13}.  However, by relying on a backward-chaining proof
+search interpretation, these works have favored authorial intent above
+narrative emergence. Our contribution is to investigate LL for modeling
+story scenarios which are primarily exploratory and generative, rather than
+purely goal-driven, using forward-chaining proof search.
+This duality between intent (backward chaining) and exploration
+(forward chaining) has previously been used for combining deliberative and
+reactive behaviour for agent modelling~\cite{Harland04}. Our language of
+investigation, called Celf~\cite{schacknielsen08celf}, supports both
+forward and backward chaining through the {\em focusing} theory of
+proof search~\cite{chaudhuri10logical}.
+
+\section{Contributions}
+
+Expanding on our previous work~\cite{Martens13:LPNMR}, we demonstrate how
+to encode more general story settings that are {\em parametric} over
+arbitrary world states, settings, and characters. We demonstrate that these
+rules create {\em nontrivial feedback loops} in terms of their causal
+structure, allowing for long and perhaps unpredictable chains of events to
+create pivotal events in stories.
+
+We further extend our use of tools to this case, including those we get
+for free from the language Celf as well as the extrinsic
+graphical tool and query language. These tools illustrate the
+use of proof term structure in exploring the consequences of rules which
+may have been conceived in the haphazard, ad-hoc way of first draft
+designs.
+
+The takeaway point of this paper is that {\bf encoding story worlds in a
+linear logic programming language allows for informative exploration of
+their consequences.} For the remainder of the paper, we will support this claim by
+describing an example and its semantics, demonstrating how
+nondeterministic proof search can be used to {\em generate} stories, and
+sketching our work in progress on tools for {\em analyzing} and {\em
+interacting with} story models.
+
+\section{System Overview}
+% \label{sec:overview}
+
+The basis of our framework is the use of LL as a language for specifying
+actions. This setup is similar to the use of planning languages such as
+STRIPS~\cite{Fikes1971STRIPS} in the sense that we model the world as a
+collection of predicates and specify the available actions declaratively in
+terms of those predicates.
+
+A {\em world state} is an unordered collection of
+predicates $\Delta$, and actions are written as state transitions $A \lolli
+\{B\}$, signifying an action that replaces the state components
+described by $A$ with those described by $B$.
+
+The process of execution (or {\em simulation} or {\em generation}) of a
+story, then, is to take a user-specified initial state $\Delta_0$, find
+some rule $r$ in the specification $\Sigma$ that can apply, and apply it to get
+$\Delta_1$. 
+% We sometimes write this state transition as $\Delta_0 \stepsto^r \Delta_1$. 
+% above notation never used.
+This process is iterated until no further rules apply, at which
+point we say we have reached {\em quiescence}.
+
+When a rule $r : A \lolli \mon{B}$ is applied on state $\Delta, A$, the
+next state is $\Delta, B$. The component $\Delta$ which is irrelevant to
+the rule stays the same, solving the {\em frame problem} present in other
+settings, such as event and situation calculi~\cite{hayes1971frame}. This
+property arises from the inference rules defining $\lolli$ as the
+proposition-level internalization of logical entailment.
+
+We summarize the connectives and notation used below:
+
+\begin{tabular}{ccc}
+abstract syntax & concrete syntax & meaning\\
+\hline
+$A \lolli \mon{B}$    & \verb|A -o {B}|  & replacement \\
+$A \tensor B$   & \verb|A * B|   & conjunction of resources\\
+$\bang A$       & \verb|!A|      & persistent resource\\
+\end{tabular}
+
+Persistent resources may be regarded as permanent facts as in standard
+propositional logics.
+
+\section{Example: A Romantic Tragedy Story World}
+% \label{sec:example}
+
+The key to programming with LL is formulating one's problem in
+terms of {\em resources}, i.e. the components of a story that may interact
+and change. Then, the author describes {\em how} (through what actions)
+those components change. In a bit more detail, the process for designing a
+story world takes the following shape:
+
 \begin{enumerate}
-\item Identify the components of story state, such as physical location,
-character relationships, and each character's access to resources. Declare
-a predicate (type) for each of these; for example, to declare that
-\verb|anger C C'| is a well-formed state component representing \verb|C|
-being angry at \verb|C'|, declare  
-\verb|anger : character -> character -> type|.
+\item Identify the components of story state, such as physical location and
+character relationships. Declare a predicate (type) for each of these; for
+example, declare that \verb|anger C C'| is a well-formed state component
+when $C$ and $C'$ are characters. We map predicates
+in our example to their intended meanings in the table below.
+% Table~\ref{table:predicates}.
+
 \item Identify the {\em narrative actions}, i.e. ways that characters can
 interact with each other or their environs to cause changes in the state.
 For instance, a rule for flirting with a character other than one's lover
@@ -106,544 +279,701 @@ may cause anger in the lover directed at both flirters, which is
 represented by the rule
 \begin{verbatim}
 do/flirt/conflict 
-: at C L * at C' L * at C'' L *
-  eros C C' * eros C'' C
-                -o {eros C C' * eros C' C * eros C' C'' 
-                    * anger C'' C' * anger C'' C
-                    * at C L * at C' L * at C'' L}.
+: eros Flirter Flirtee * eros Other Flirtee
+  -o {eros Flirter Flirtee * eros Flirtee Flirter
+      anger Other Flirter * anger Other Flirtee}.
 \end{verbatim}
-Effectively, such rules can be read as a directive to the system, ``replace
-the state described to the left of \verb|-o| with the state described to
-the right of it.''
+(The words beginning with capital letters, by convention, mark logic
+variables, and are implicitly quantified at the beginning of the rule---the
+names themselves are arbitrary.)
+%Effectively, such rules can be read as a directive to the system, ``replace
+%the state described to the left of \verb|-o| with the state described to
+%the right of it.''
 \end{enumerate}
 
-A complete story-world specification is simply a collection of these predicate
-and rule declarations.
-
-We can join it with its complementary half, a specification of setting
-elements, characters, and initial states, to generate stories or analyse
-the system we have described.
-
-The remainder of this section carries out an example following the
-aforementioned workflow.
+A complete story world specification is simply a collection of these
+predicate and rule declarations.  The author may then join it with its
+complementary half, a specification of setting elements, characters, and
+initial states, to generate stories or analyze the system we have
+described.  The remainder of this section carries out an example, a case
+study of a Shakespeare-inspired romantic tragedy world, following
+the aforementioned workflow.\footnote{The complete, runnable code for this
+example can be found at
+\url{https://github.com/chrisamaphone/interactive-lp/blob/master/examples/tragedy.clf}.}
 
 The state we model includes sentiments between characters (several forms of
 love and hate), physical locations and basic movement, possession of key
 objects (such as weapons), relationship states (marriage and being single),
 desires for objects, and solitary emotions (depression).
 
-% XXX explain predicates, via a table
+% \begin{table}[ht]
+%\centering
+\begin{tabular}{c|c}
+Predicate & Meaning\\
+\hline
+\verb|at C L|       & $C$ is (alive) in location $L$\\
+\verb|has C O|      & $C$ possesses an object $O$\\
+\verb|neutral C C'| & $C$ feels neutrally toward $C'$\\
+\verb|philia C C'|  & $C$ feels affection toward $C'$\\
+\verb|anger C C'|   & $C$ feels anger toward $C'$\\
+\verb|eros C C' |   & $C$ feels attraction toward $C'$\\
+\verb|unmarried C|  & $C$ is unmarried\\
+\verb|married C C'| & $C$ is married to $C'$\\
+\verb|depressed C|  & $C$ is depressed\\
+\verb|suicidal C|   & $C$ is suicidal\\
+\verb|!dead C|      & $C$ is dead\\
+\verb|!murdered C C'| & $C$ murdered $C'$\\
+\verb|!actor C|     & $C$ is a character in the story
+\end{tabular}
+% \label{table:predicates}
+% \end{table}
 
-A selection of rules for our chosen genre is given below:
+These predicates do not specify a particular cast of characters or setting,
+but they could be said to pertain to a particular {\em genre} of story, in
+this case romance and tragedy. The delineation of the story world into
+predicates is an act of careful human design, often iterated with the
+generation of stories, and the choices made here make all the difference in
+terms of which actions are possible to write and therefore what shapes the
+story can take. For instance, the choice to include two kinds of love,
+\verb|eros| and \verb|philia|, means that we can codify social rules about
+sexual relationships between characters. Similarly, the choice {\em not} to
+include a predicate for a character's gender renders it impossible to
+enforce heteronormative relationships. We have to make a choice about
+whether we want to model a realistic description of human behavior (which
+often contradicts social norms) or enforce social norms by constraining
+actions with our formal description. 
 
-Romance module:
+A selection of rules for our chosen genre is given below, starting with the
+rules for basic social interaction:\footnote{The location predicates
+\texttt{at C L} in these rules signify not just location, but also that the
+character in question is alive and available in the story. The \texttt{at}
+atom is consumed when a character dies.}
+
 \begin{verbatim}
-% eros to philia
-do/fallInLove
-: actor C * actor C' *
-  at C L * at C' L' *
-  eros C C'
-  -o {@at C L * @at C' L' * @eros C C' * @philia C C'}.
+do/formOpinion/like
+: at C L * at C' L *
+  neutral C C'
+  -o {at C L * at C' L * philia C C'}.
 
-% philia to eros
+do/formOpinion/dislike
+: at C L * at C' L *
+  neutral C C'
+  -o {at C L * at C' L * anger C C'}.
+
+do/compliment/private
+: at C L * at C' L * philia C C' 
+  -o {at C L * at C' L * philia C C' * philia C' C}.
+
+do/compliment/witnessed
+: at C L * at C' L * at Witness L * philia C C' *
+  anger Witness C' 
+  -o {at C L * at C' L * at Witness L * philia C C' * 
+      anger Witness C' * philia C' C * anger Witness C}.
+
+do/insult/private
+: at C L * at C' L * anger C C' 
+  -o {at C L * at C' L * anger C C' * anger C' C * 
+      depressed C'}.
+
+do/insult/witnessed
+: at C L * at C' L * at Witness L * 
+  anger C C' * philia Witness C' 
+  -o {at C L * at C' L * at Witness L * 
+      anger C C' * philia Witness C' * anger C' C * 
+      depressed C' * anger Witness C}.
+
+mixed_feelings 
+: at C L * anger C C' * philia C C' -o {at C L * neutral C C'}.
+\end{verbatim}
+Note that there are two ``versions'' each of the actions for insulting and
+complimenting, one that happens ``in private'' and another that affects a
+witness in the same location. This encoding signals a weakness: it is
+unnatural to represent a {\em broadcast} of an action affecting every
+character who might be in range, since LL primarily codifies {\em local}
+state changes. On the other hand, this mechanism's nondeterminism could be
+argued to reflect the chance involved in whether an action goes noticed.
+
+Next we codify the rules for romantic interaction, which include
+tranformations between eros and philia as well as flirting, marriage, and
+divorce:
+\begin{verbatim}
+do/fallInLove
+: at C L * at C' L' *
+  eros C C'
+  -o {at C L * at C' L' * eros C C' * philia C C'}.
+
 do/eroticize
-: actor C * actor C' *
-  at C L * at C' L' *
+: at C L * at C' L' *
   philia C C' * philia C C' * philia C C' * philia C C'
-  -o {@at C L * @at C' L' * @philia C C' * @eros C C'}.
+  -o {at C L * at C' L' * philia C C' * eros C C'}.
 
 do/flirt/ok
-: actor C * actor C' *
-  at C L * at C' L * eros C C' * unmarried C * unmarried C'
-               -o {@eros C C' * @eros C' C * 
-                    @unmarried C * @unmarried C' *
-                    @at C L * @at C' L}.
-do/flirt/discrete
-: actor C * actor C' *
-  at C L * at C' L * eros C C'
-  -o {@eros C C' * @eros C' C * @at C L * @at C' L}.
+: at C L * at C' L * eros C C' * unmarried C * unmarried C'
+               -o {eros C C' * eros C' C * 
+                    unmarried C * unmarried C' *
+                    at C L * at C' L}.
+do/flirt/discreet
+: at C L * at C' L * eros C C'
+  -o {eros C C' * eros C' C * at C L * at C' L}.
 
 do/flirt/conflict 
-: actor C * actor C' *
-  at C L * at C' L * at C'' L *
+: at C L * at C' L * at C'' L *
   eros C C' * eros C'' C
-                -o {@eros C C' * @eros C' C * @eros C' C'' 
-                    * @anger C'' C' * @anger C'' C
-                    * @at C L * @at C' L * @at C'' L}.
-do/divorce
-: actor C * actor C' *
-  at C L * at C' L' *
-  married C C' * married C' C * anger C C' * anger C C'
-  -o {@anger C C' * @anger C' C * @unmarried C * @unmarried C'
-      * @at C L * @at C' L'}.
-
-do/widdow
-: actor C * actor C' *
-  married C C' * at C L * dead C'
-  -o {@unmarried C * @at C L}.
-
+                -o {eros C C' * eros C' C * eros C'' C 
+                    * anger C'' C' * anger C'' C
+                    * at C L * at C' L * at C'' L}.
 do/marry 
-: actor C * actor C' *
-  % at C temple * at C' temple * 
-  at C L * at C' L * 
+: at C L * at C' L * 
   eros C C' * philia C C' * 
   eros C' C * philia C' C * 
   unmarried C * unmarried C'
-             % * has C money
-               -o {@married C C' * @married C' C * @at C L * @at C' L *
-                    @eros C C' * @eros C' C *
-                    @philia C C' * @philia C' C }.
+  -o {married C C' * married C' C * at C L * at C' L *
+      eros C C' * eros C' C * philia C C' * philia C' C }.
 
-do/formOpinion/like
-: actor C * actor C' *
-  at C L * at C' L *
-  neutral C C'
-  -o {@at C L * @at C' L * @philia C C'}.
+do/divorce
+: at C L * at C' L' *
+  married C C' * married C' C * anger C C' * anger C C'
+  -o {anger C C' * anger C' C * unmarried C * unmarried C'
+      * at C L * at C' L'}.
 
-do/formOpinion/dislike
-: actor C * actor C' *
-  at C L * at C' L *
-  neutral C C'
-  -o {@at C L * @at C' L * @anger C C'}.
+do/widow
+: married C C' * at C L * dead C'
+  -o {unmarried C * at C L}.
 \end{verbatim}
 
-Violence module:
+These rules include the generation of sentiments from a netural stance,
+transformations between the two kinds of love \verb|philia| and \verb|eros|,
+and flirting, which strengthens both kinds of love, but causes anger if
+witnessed by another paramour. We also include rules that modify the
+marriages of characters.
+
+Next we supply rules governing death and violence:
 \begin{verbatim}
 do/murder 
-: actor C * actor C' *
-  anger C C' * anger C C' * anger C C' * @anger C C' *
-  at C L * at C' L  * nchars (s N) * has C weapon
-                -o {@at C L * !dead C' * !murdered C C' * @nchars N *
-                      @has C weapon}.
+: anger C C' * anger C C' * anger C C' * anger C C' *
+  at C L * at C' L  * has C weapon
+  -o {at C L * !dead C' * !murdered C C' * has C weapon}.
 
 do/becomeSuicidal
-: actor C *
-  at C L *
+: at C L *
   depressed C * depressed C * depressed C * depressed C
-  -o {@at C L * @suicidal C * @wants C weapon}.
+  -o {at C L * suicidal C * wants C weapon}.
 
 do/comfort
-: actor C * actor C' *
-  at C L * at C' L *
-  suicidal C' * philia C C' * @philia C' C
-  -o {@at C L * @at C' L * 
-      @philia C C' * @philia C' C * @philia C' C}.
+: at C L * at C' L *
+  suicidal C' * philia C C' * philia C' C
+  -o {at C L * at C' L * 
+      philia C C' * philia C' C * philia C' C}.
 
 do/suicide
-: actor C * 
-  at C L * 
-  suicidal C *
-  has C weapon *
-  nchars (s N)
- -o {@nchars N * !dead C}. 
+: at C L * suicidal C * has C weapon -o {!dead C}. 
 
 do/mourn 
-: actor C * actor C' *
-  at C L * philia C C' * dead C' 
-  -o {@at C L * @depressed C * @depressed C}. % * @remembered C'}.
+: at C L * philia C C' * dead C' 
+  -o {at C L * depressed C * depressed C}.
 
 do/thinkVengefully
-: actor C * actor Killer * actor Dead *
-  at C L * at Killer L' * 
+: at C L * at Killer L' * 
   philia C Dead * murdered Killer Dead
-  -o {@at C L * @at Killer L' * @philia C Dead *
-      @anger C Killer * @anger C Killer}.
-
+  -o {at C L * at Killer L' * philia C Dead *
+      anger C Killer * anger C Killer}.
 \end{verbatim}
 
-Things that can affect sentiment and possession:
+The violence module introduces several potential feedback loops between
+murder and vengeance, suicide, mourning, and depression.
+
+Finally, we have a few actions that can affect possession:
 \begin{verbatim}
 do/give
- : actor C * actor C' *
-   at C L * at C' L * has C O * wants C' O * philia C C'
-         -o {@at C L * @at C' L * @has C' O * @philia C C'}.
+: at C L * at C' L * has C O * wants C' O * philia C C'
 
 do/steal
-  : actor C' * actor C * 
-    at C L * at C' L * has C O * wants C' O
-         -o {@at C L * @at C' L * @has C' O * @anger C C'}.
+: at C L * at C' L * has C O * wants C' O
+  -o {at C L * at C' L * has C' O * anger C C'}.
 
 do/loot
-  : actor C * actor C' *
-    at C L * dead C' * has C' O * wants C O
-    -o {@at C L * @has C O}.
-
-do/compliment/private
-: actor C * actor C' *
-  at C L * at C' L * @philia C C' -o
-          {@at C L * @at C' L * @philia C C' * @philia C' C}.
-
-do/compliment/witnessed
-: actor C * actor C' * actor Witness *
-  at C L * at C' L * at Witness L * @philia C C' *
-  anger Witness C' -o
-          {@at C L * @at C' L * @at Witness L * @philia C C' * @anger Witness C'  
-            * @philia C' C * @anger Witness C}.
-
-do/insult/private
-: actor C * actor C' *
-  at C L * at C' L * @anger C C' -o
-          {@at C L * @at C' L * @anger C C' * @anger C' C * @depressed C'}.
-
-do/insult/witnessed
-: actor C * actor C' * actor Witness *
-  at C L * at C' L * at Witness L * @anger C C' * philia Witness C' -o
-          {@at C L * @at C' L * @at Witness L * @anger C C' * 
-            @philia Witness C' * @anger C' C * @depressed C' * @anger Witness C}.
-
-mixed_feelings 
-: actor C * actor C' * at C L * 
-  anger C C' * philia C C' -o {@at C L * @neutral C C'}.
+: at C L * dead C' * has C' O * wants C O
+  -o {at C L * has C O}.
 \end{verbatim}
 
-Some concluding remarks
+Given this set of rules, we note that the story world is multi-agent in
+nature---the interactor with such a story doesn't obviously ``play'' one
+particular character, and the rules aren't defined as ``behaviors''
+attached to a given agent. They portray the interiority of all characters
+at once, allowing them to be referenced and changed in combination.
 
+\subsection{Initial State}
+
+After describing the general rules of our Shakespearean tragedy
+story world, which are parameterized over characters and locations, we can
+fill in specific elements, such as the characters and setting of Romeo and
+Juliet, to have a complete and runnable specification.
+
+First we can describe the {\em persistent} (unchanging, i.e. not linear)
+facts about the story, in this case the world map and the cast of
+characters:
+
+\begin{verbatim}
+mon/town : accessible mon_house town.
+town/mon : accessible town mon_house.
+cap/town : accessible cap_house town.
+town/cap : accessible town cap_house.
+
+a-romeo : actor romeo.
+a-juliet : actor juliet.
+a-montague : actor montague.
+a-capulet : actor capulet.
+a-mercutio : actor mercutio.
+a-nurse : actor nurse.
+a-tybalt : actor tybalt.
+a-apothecary : actor apothecary.
+\end{verbatim}
+
+Next, we need to designate the {\em initial} state of all the linear
+predicates. It could look something like this:
+
+\begin{verbatim}
+story_start :
+init -o { at romeo town * at montague mon_house * at capulet cap_house
+  * at mercutio town * at nurse cap_house * at juliet town
+  * at tybalt town * at apothecary town
+
+  * has tybalt weapon * has romeo weapon * has apothecary weapon
+
+  * unmarried romeo * unmarried juliet
+  * unmarried nurse * unmarried mercutio * unmarried tybalt
+  * unmarried apothecary
+
+  * anger montague capulet * anger capulet montague
+  * anger tybalt romeo * anger capulet romeo * anger montague tybalt
+
+  * philia mercutio romeo * philia romeo mercutio
+  * philia montague romeo * philia capulet juliet
+  * philia juliet nurse * philia nurse juliet
+
+  * neutral nurse romeo
+  * neutral mercutio juliet * neutral juliet mercutio
+  * neutral apothecary nurse * neutral nurse apothecary}.
+\end{verbatim}
+
+The first two groups of atoms describe the story world locations where
+the characters begin and their possessions. The next group represents which
+characters are unmarried at the start of the story. The next two groups
+represent existing relationships (sentiments)  among characters, and
+finally the last group represents which characters haven't met each other
+yet (and so feel neutrally towards each other).
+
+\subsection{Serendipity}
+
+While general-purpose, generative story rules serve to create an emergent
+notion of story, one might argue that in many stories, {\em coincidence} or
+{\em serendipity} plays a large role in the story being interesting. We
+have a way to codify the idea of serendipitous events as well: it is that
+{\em rules} of the form $A \lolli \mon{B}$ can be treated on the same level as
+other propositions, and thus included in initial states.
+
+For example, we encode Romeo and Juliet's ``love at first sight'' as a
+single rule added to the consequent of \verb|story_start|:
+
+\begin{verbatim}
+story_start :
+init -o {
+  ...
+  {Forall L. at romeo L * at juliet L
+      -o {eros romeo juliet * at romeo L * at juliet L}}
+  ...}.
+\end{verbatim}
+
+This single-use rule dictates that whenever Romeo and Juliet are in the
+same place, Romeo may gain eros for Juliet.  The construct 
+\verb|Forall L ...| allows the rule to be parameterized over the shared
+location where they meet. (This use of quantification differs from the
+implicit quantification happening on the outside of every rule; here, we
+want to bind the location {\em locally} rather than over the entire
+\verb|story_start| rule.)
+
+\subsection{Final States}
+
+We could at this point call the example complete and ask the system to
+begin executing the rules from the given initial state. But before doing
+so, we might be interested in some high-level structural questions, such
+as: do stories in this specification {\em end}? If so, how do they end?
+
+Answering this question requires thinking about the rules {\em
+operationally} rather than as static descriptions of possible actions. The
+operational semantics of the program is based on the formal description
+given in the section System Overview wherein a {\em step} is an evolution
+of a context $\Delta, A$ to a context $\Delta, B$ along a rule $A \lolli
+\mon{B}$.\footnote{This is a simplification of the story---the true
+transition semantics are given by rules that do not require
+the rule's precondition to be already formed in the context, but may
+perform backward search to find it.} The simulation terminates when no more
+steps can be made, i.e.  when no more rules apply to the current context.
+
+We make the following observation: all of the character actions in our
+specification require at least one character to be alive (represented by
+the \verb|at| predicate). Most of the rules preserve location/aliveness of
+the characters, but the actions corresponding to character deaths (murder
+and suicide) do not. Therefore, the story will terminate when all
+characters have died.
+
+At several points in the story, multiple rules will apply. If we consider a
+{\em fair} operational semantics, i.e. one where when multiple rules apply,
+each has some positive chance of being chosen, then {\em eventually} the
+termination condition will be reached. How long the story goes on before it
+ends is a function of the more specific probabilities a rule is selected
+with in the story engine -- which property is not defined by the language
+semantics, but is observable of the implementation.
+
+For this example, we decided to make termination conditions that would be
+met more frequently for the sake of shorter stories, more dense with
+interesting behavior. This also allows us to codify a set of ``story
+endings.'' To do this, we create new atoms \verb|final| and
+\verb|nonfinal|, add \verb|nonfinal| to the initial state,
+and write a few rules that lead from desired end conditions to
+the \verb|final| atom, consuming \verb|nonfinal|, e.g.:
+
+\begin{verbatim}
+ending_happy
+: nonfinal *
+  actor C * actor C' *
+  at C L * at C' L * married C C'
+  -o {final}.
+
+ending_vengeance
+: nonfinal *
+  actor C1 * actor C2 * actor C3 *
+  killed C1 C2 * philia C3 C2 * killed C3 C1
+    -o {final}.
+\end{verbatim}
 
 \section{Proofs as Stories}
+% \label{sec:traces}
 
-% \input{traces.tex}
+To reiterate, the takeaway point of this paper is that {\em encoding
+story worlds in a linear logic programming language allows for informative
+exploration of their consequences}.  Two of these exploration techniques
+are {\em random story generation} and {\em structural analysis}, and what
+enables those techniques to fall naturally out of our encoding is the fact
+that there is a direct and formal correspondence between {\em stories} and
+{\em proofs}. 
 
-here we can say how stuff actually matches up to linear logic, which is an
-internally sound/complete proof system with well-behaved metatheoretic
-properties et cetera.
+Once we write our specification as a collection of logical
+formulas, we can initiate a {\em query} such as
 
-constructive logic is totally awesome because the process of executing the
-program gives us a structured witness to examine, complete with dependency
-structure
+\begin{verbatim}
+?- init -o {final}.
+\end{verbatim}
 
-lambda terms
+This query asks whether there is a {\em proof} from the state described by
+\verb|init| to the atom \verb|final|. Initially, proof search is {\em
+goal-directed} or backward-chaining: it adds \verb|init| to the current
+state and considers how to prove \verb|{final}|. Before now, we have been
+treating the curly braces \verb|{-}| as meaningless, but they mean
+something in terms of proof search: it must now switch to a {\em
+forward-chaining} or {\em generative} mode, running inference forward from
+the \verb|init| atom. Only once the entire story has terminated will it
+look for \verb|final|, at which point search will succeed if it finds it.
 
-monadic terms
+But the point of executing the query isn't really to find out whether the
+initial state leads to a valid conclusion. What we are interested in is the
+{\em trace} generated by execution---the witness to the validity of the
+proposition, i.e. the proof!
 
-sample trace output
+Interpreting propositions as types, we assign a proof term to the
+implication $A \lolli B$ as a $\lambda$-term, or function, from terms of
+type $A$ to terms of type $B$. Within the body $M$ of the function
+$\lambda{x{:}A}.M$, the story term can make use of the variable $x$, e.g.
+by projecting out its components and applying rules in the story signature
+to them.
 
-Some discussion of what happens if we include, exclude, or vary the rules -
-variations on the specification that work like ``knobs'' in the story
-output
+Proofs of monadic goals, such as, in our example, \verb|{final}|, are lists
+of let-bindings that capture the trace of actions, e.g.:
 
-\section{Programmatic Analysis}
+%See Figure~\ref{fig:letbind}
+%for a segment of this let-binding structure generated by Celf on the
+%example given.
 
-% \input{analysis.tex}
-discussion of the celf-to-graph tool and potential application to this work
+% \begin{figure*}
+% \caption{A fragment of Celf trace/structured plot.
+% \label{fig:letbind}}
+% \centering
+% \begin{verbatim}
+% ...
+% let {[X73, [X74, [X75, [X76, X77]]]]} 
+%   = do/insult/private [a-tybalt, [a-romeo, [X68, [X66, X72]]]] in 
+% let {[X78, [X79, [X80, [X81, [X82, [X83, X84]]]]]]} 
+%   = do/compliment/witnessed [a-mercutio, [a-romeo, [a-tybalt, [X67, [X74, [X73, [X57, X56]]]]]]] in 
+% let {[X85, [X86, X87]]} = do/becomeSuicidal [a-romeo, [X79, [X41, [X59, [X52, X77]]]]] in 
+% let {[X88, [X89, [X90, [X91, X92]]]]} 
+%   = do/comfort [a-mercutio, [a-romeo, [X78, [X85, [X86, [X81, X83]]]]]] in 
+% let {[X94, [X95, [X96, [X97, [X98, [X99, X100]]]]]]} 
+%   = do/compliment/witnessed [a-romeo, [a-mercutio, [a-tybalt, [X89, [X88, [X80, [X92, X84]]]]]]] in 
+% let {[X101, [!X102, [!X103, X104]]]} 
+%   = do/murder [a-romeo, [a-tybalt, [X58, [X40, [X76, [X51, [X94, [X96, X27]]]]]]]] in 
+% let {[X105, [X106, [X107, X108]]]} 
+%   = do/compliment/private [a-nurse, [a-juliet, [X46, [X47, X30]]]] in 
+% let {[X109, [X110, [X111, X112]]]} 
+%   = do/compliment/private [a-juliet, [a-nurse, [X106, [X105, X108]]]] in 
+% let {[X113, X114]} 
+%   = do/loot [a-romeo, [a-tybalt, [X101, [X102, [X26, X87]]]]] in
+% ...
+% \end{verbatim}
+% % \includegraphics[width=0.5\textwidth]{let-binding-annotated}
+% \end{figure*}
 
-\section{Discussion and Ongoing Work}
+\begin{verbatim}
+...
+let {[X73, [X74, [X75, [X76, X77]]]]} 
+  = do/insult/private [a-tybalt, [a-romeo, [X68, [X66, X72]]]] in 
+let {[X85, [X86, X87]]} 
+  = do/becomeSuicidal [a-romeo, [X79, [X41, [X59, [X52, X77]]]]] in 
+let {[X88, [X89, [X90, [X91, X92]]]]} 
+  = do/comfort [a-mercutio, [a-romeo, 
+      [X78, [X85, [X86, [X81, X83]]]]]] in 
+let {[X101, [!X102, [!X103, X104]]]} 
+  = do/murder 
+    [a-romeo, [a-tybalt, 
+      [X58, [X40, [X76, [X51, [X94, [X96, X27]]]]]]]] in 
+let {[X105, [X106, [X107, X108]]]} 
+  = do/compliment/private 
+    [a-nurse, [a-juliet, [X46, [X47, X30]]]] in 
+let {[X109, [X110, [X111, X112]]]} 
+  = do/compliment/private 
+    [a-juliet, [a-nurse, [X106, [X105, X108]]]] in 
+let {[X113, X114]} 
+  = do/loot [a-romeo, [a-tybalt, [X101, [X102, [X26, X87]]]]] in
+...
+\end{verbatim}
 
-cite thesis proposal
+This fragment of trace shows how certain scenes, such as one wherein Tybalt
+drives Romeo to murder with Mercutio's support, are interleaved with
+independent scenes, such as a loving conversation between the Nurse and
+Juliet.
 
-adding player interaction
+Within the let-binding portion of the trace, we see a record of the story
+rules selected, which can be seen as a linear progression of events. But
+additionally, each binding 
+\verb|let {[X1, ..., Xn]} = rule [Y1, ..., Ym]| represents
+the call of \verb|rule| on previously-generated resources \verb|Y1 ... Ym|
+representing its antecedent, generating {\em new} resources 
+\verb|X1 ...  Xn| representing its consequent. This allows us to analyze
+the proof term for dependency structure, specifically revealing which
+events are {\em in}depedenent and can be thought of as concurrent
+storylines. 
 
-% \input{discussion.tex}
+Here is a graphical depiction of the let-binding for Mercutio comforting
+Romeo in the above trace fragment:
 
-% \section{Conclusion}
+\includegraphics[width=0.5\textwidth]{let-binding-annotated}
 
-% \input{conclusion.tex}
-
-\appendix
-
-% XXX appendix heading?
-% XXX oversize code listing for columns
-\section{Full code listing for example}
-
+% As a specific example, consider the line of the figure wherein
+% Mercutio comforts Romeo. The following image illustrates 
+% the proof term syntax in terms of input and output resources to a rule:
+% XXX point out figure and image
 
 % \begin{verbatim}
+% X78 : at mercutio L
+% X85 : at romeo L
+% X86 : suicidal romeo
+% X81 : philia mercutio romeo
+% X83 : philia romeo mercutio
+% \end{verbatim}
 % 
-% %% Generalized Shakespearean tragedy, instantiated with Romeo & Juliet as a
-% %% case study.
-% 
-% nat : type. z : nat. s : nat -> nat.
-% leq : nat -> nat -> type.
-% leq/z : leq z N.
-% leq/s : leq (s N) (s M)
-%          <- leq N M.
-% time : nat -> type.
-% nchars : nat -> type.
-% 
-% character : type.
-% actor : character -> type.
-% location : type.
-% accessible : location -> location -> type.
-% object : type.
-% 
-% % a useful kind of object for the genre.
-% weapon : object.
-% 
-% % states
-% dead : character -> type.
-% murdered : character -> character -> type.
-% at : character -> location -> type.
-% has : character -> object -> type.
-% wants : character -> object -> type.
-% married : character -> character -> type.
-% unmarried : character -> type.
-% anger : character -> character -> type.
-% % storge : character -> character -> type.
-% eros : character -> character -> type.
-% philia : character -> character -> type.
-% neutral : character -> character -> type.
-% depressed : character -> type.
-% suicidal : character -> type.
-% % bored : character -> type.
-% boredom : type.
-% 
-% % C travels to be near C'.
-% do/travelTo
-% : actor C * actor C' *
-%   philia C C' * at C' L' *
-%   at C L * accessible L L'
-%   -o {@philia C C' * @at C' L' * @at C L'}.
-% 
-% % do/travelFrom
-% % : actor C *
-% %   at C L * at C' L * hates C C'
-% %  accessible L L'
-% %  -o  {@at C L' * @at C' L * @hates C C'}.
-% 
-% % do/getbored
-% % : actor C *
-% %  boredom *
-% %  at C L -o {@bored C}.
-% 
-% do/travelBored
-% : actor C *
-%   at C L * accessible L L' * boredom * boredom
-%   -o {@at C L'}.
-% 
-% % eros to philia
-% do/fallInLove
-% : actor C * actor C' *
-%   at C L * at C' L' *
-%   eros C C'
-%   -o {@at C L * @at C' L' * @eros C C' * @philia C C'}.
-% 
-% % philia to eros
-% do/eroticize
-% : actor C * actor C' *
-%   at C L * at C' L' *
-%   philia C C' * philia C C' * philia C C' * philia C C'
-%   -o {@at C L * @at C' L' * @philia C C' * @eros C C'}.
-% 
-% do/flirt/ok
-% : actor C * actor C' *
-%   at C L * at C' L * eros C C' * unmarried C * unmarried C'
-%                -o {@eros C C' * @eros C' C * 
-%                     @unmarried C * @unmarried C' *
-%                     @at C L * @at C' L}.
-% do/flirt/discrete
-% : actor C * actor C' *
-%   at C L * at C' L * eros C C'
-%   -o {@eros C C' * @eros C' C * @at C L * @at C' L}.
-% 
-% do/flirt/conflict 
-% : actor C * actor C' *
-%   at C L * at C' L * at C'' L *
-%   eros C C' * eros C'' C
-%                 -o {@eros C C' * @eros C' C * @eros C' C'' 
-%                     * @anger C'' C' * @anger C'' C
-%                     * @at C L * @at C' L * @at C'' L}.
-% do/divorce
-% : actor C * actor C' *
-%   at C L * at C' L' *
-%   married C C' * married C' C * anger C C' * anger C C'
-%   -o {@anger C C' * @anger C' C * @unmarried C * @unmarried C'
-%       * @at C L * @at C' L'}.
-% 
-% do/widdow
-% : actor C * actor C' *
-%   married C C' * at C L * dead C'
-%   -o {@unmarried C * @at C L}.
-% 
-% do/marry 
-% : actor C * actor C' *
-%   % at C temple * at C' temple * 
-%   at C L * at C' L * 
-%   eros C C' * philia C C' * 
-%   eros C' C * philia C' C * 
-%   unmarried C * unmarried C'
-%              % * has C money
-%                -o {@married C C' * @married C' C * @at C L * @at C' L *
-%                     @eros C C' * @eros C' C *
-%                     @philia C C' * @philia C' C }.
-% % do/famtalk/like
-% % : actor C * actor C' *
-% %   at C L * at C' L *
-% %   family C C'
-% %   -o {@at C L * @at C' L * @philia C C'}.
-% % 
-% % do/famtalk/hate
-% % : actor C * actor C' *
-% %   at C L * at C' L *
-% %   family C C'
-% %   -o {@at C L * @at C' L * @anger C C'}.
-% 
-% do/formOpinion/like
-% : actor C * actor C' *
-%   at C L * at C' L *
-%   neutral C C'
-%   -o {@at C L * @at C' L * @philia C C'}.
-% 
-% do/formOpinion/dislike
-% : actor C * actor C' *
-%   at C L * at C' L *
-%   neutral C C'
-%   -o {@at C L * @at C' L * @anger C C'}.
-% 
-% do/murder 
-% : actor C * actor C' *
-%   anger C C' * anger C C' * anger C C' * @anger C C' *
-%   at C L * at C' L  * nchars (s N) * has C weapon
-%                 -o {@at C L * !dead C' * !murdered C C' * @nchars N *
-%                       @has C weapon}.
-% 
-% do/becomeSuicidal
-% : actor C *
-%   at C L *
-%   depressed C * depressed C * depressed C * depressed C
-%   -o {@at C L * @suicidal C * @wants C weapon}.
-% 
-% do/comfort
-% : actor C * actor C' *
-%   at C L * at C' L *
-%   suicidal C' * philia C C' * @philia C' C
-%   -o {@at C L * @at C' L * 
-%       @philia C C' * @philia C' C * @philia C' C}.
-% 
-% do/suicide
-% : actor C * 
-%   at C L * 
-%   suicidal C *
-%   has C weapon *
-%   nchars (s N)
-%  -o {@nchars N * !dead C}. 
-% 
-% do/give
-%  : actor C * actor C' *
-%    at C L * at C' L * has C O * wants C' O * philia C C'
-%          -o {@at C L * @at C' L * @has C' O * @philia C C'}.
-% 
-% do/steal
-%   : actor C' * actor C * 
-%     at C L * at C' L * has C O * wants C' O
-%          -o {@at C L * @at C' L * @has C' O * @anger C C'}.
-% 
-% do/loot
-%   : actor C * actor C' *
-%     at C L * dead C' * has C' O * wants C O
-%     -o {@at C L * @has C O}.
-% 
-% do/compliment/private
-% : actor C * actor C' *
-%   at C L * at C' L * @philia C C' -o
-%           {@at C L * @at C' L * @philia C C' * @philia C' C}.
-% 
-% do/compliment/witnessed
-% : actor C * actor C' * actor Witness *
-%   at C L * at C' L * at Witness L * @philia C C' *
-%   anger Witness C' -o
-%           {@at C L * @at C' L * @at Witness L * @philia C C' * @anger Witness C'  
-%             * @philia C' C * @anger Witness C}.
-% 
-% do/insult/private
-% : actor C * actor C' *
-%   at C L * at C' L * @anger C C' -o
-%           {@at C L * @at C' L * @anger C C' * @anger C' C * @depressed C'}.
-% 
-% do/insult/witnessed
-% : actor C * actor C' * actor Witness *
-%   at C L * at C' L * at Witness L * @anger C C' * philia Witness C' -o
-%           {@at C L * @at C' L * @at Witness L * @anger C C' * 
-%             @philia Witness C' * @anger C' C * @depressed C' * @anger Witness C}.
-% 
-% do/mourn 
-% : actor C * actor C' *
-%   at C L * philia C C' * dead C' 
-%   -o {@at C L * @depressed C * @depressed C}. % * @remembered C'}.
-% 
-% do/thinkVengefully
-% : actor C * actor Killer * actor Dead *
-%   at C L * at Killer L' * 
-%   philia C Dead * murdered Killer Dead
-%   -o {@at C L * @at Killer L' * @philia C Dead *
-%       @anger C Killer * @anger C Killer}.
-% 
-% mixed_feelings 
-% : actor C * actor C' * at C L * 
-%   anger C C' * philia C C' -o {@at C L * @neutral C C'}.
-% 
-% %% stuff to force quiescence
-% maxtime : nat =
-%   s (s (s (s (s (s z))))).
-% time_passes 
-%   : time T * nchars (s N)
-%     -o {@time (s T) * @nchars (s N) * @boredom}.
-% story_over : nchars z * time z -o {1}.
-% die_of_old_age 
-% : actor C *
-%   at C L * time T * nchars (s N) * leq maxtime T 
-%   -o {!dead C * @time z * @nchars N}.
-% 
-% 
-% % story-specific terms.
-% romeo : character.
-% juliet : character.
-% montague : character.
-% capulet : character.
-% mercutio : character.
-% nurse : character.
-% tybalt : character.
-% apothecary : character.
-% 
-% mon_house : location.
-% cap_house : location.
-% town : location.
-% 
-% % story-specific permastates
-% mon/town : accessible mon_house town.
-% town/mon : accessible town mon_house.
-% cap/town : accessible cap_house town.
-% town/cap : accessible town cap_house.
-% 
-% a-romeo : actor romeo.
-% a-juliet : actor juliet.
-% a-montague : actor montague.
-% a-capulet : actor capulet.
-% a-mercutio : actor mercutio.
-% a-nurse : actor nurse.
-% a-tybalt : actor tybalt.
-% a-apothecary : actor apothecary.
-% 
-% %% initial state
-% 
-% init : type
-% = { @at romeo town * @at montague mon_house * @at capulet cap_house
-%   * @at mercutio town * @at nurse cap_house * @at juliet town
-%   * @at tybalt town * @at apothecary town
-% 
-%   * @unmarried romeo * @unmarried juliet 
-%   * @unmarried nurse * @unmarried mercutio * @unmarried tybalt
-%   * @unmarried apothecary
-% 
-%   * @anger montague capulet * @anger capulet montague
-%   * @anger tybalt romeo * @anger capulet romeo * @anger montague tybalt
-% 
-%   * @philia mercutio romeo * @philia romeo mercutio
-%   * @philia montague romeo * @philia capulet juliet
-%   % "lust at first sight"
-%   * {@(Pi L. at romeo L * at juliet L 
-%         -o {@eros romeo juliet * @at romeo L * @at juliet L})}
-% 
-%   * @has tybalt weapon * @has romeo weapon * @has apothecary weapon
-% 
-%   * @philia juliet nurse * @philia nurse juliet
-%   * @neutral nurse romeo % * !family juliet tybalt
-%   * @neutral mercutio juliet * @neutral juliet mercutio
-%   * @neutral apothecary nurse * @neutral nurse apothecary
-% 
-%   * @time z * @nchars (s (s (s (s (s (s (s (s z))))))))}.
-% 
-% % #trace * init.
-% 
-% #query * * * 5 init -o {1}.
+% \begin{verbatim}
+% X88 : at mercutio L
+% X89 : at romeo L
+% X90 : philia mercutio romeo
+% X91 : philia romeo mercutio 
+% X92 : philia romeo mercutio
 % \end{verbatim}
 
+The variables at the top of the image represent the inputs/antecedents to
+the rule, including the persistent witnesses of Romeo and Mercutio's
+actorhood, which arise from the signature, as well as those generated by
+prior let-bindings. The variables in the bottom are freshly generated by
+the rule, representing its outputs/consequents.
+
+Although the let-bindings appear presented linearly, because they encode
+data dependency information, independent forks can actually be extricated
+from one another through a notion of {\em concurrent equality} derived from
+the syntactic structure, i.e.
+\verb|let x1 = M1 in let x2 = M2 in M| may be considered the same trace as
+\verb| let x2 = M2 in let x1 = M2 in M|
+iff the inputs of \verb|M2| are separate from the outputs of \verb|M1|.
+
+It is important to emphasize the critical use of Celf's basis in
+constructive logic, which enables the identification of program execution
+with a structured witness to examine, complete with dependency structure.
+
+% Some discussion of what happens if we include, exclude, or vary the rules -
+% variations on the specification that work like ``knobs'' in the story
+% output
+
+\subsection{Graphical Analysis}
+
+For the sake of making the dependency structure more visually explicit, we
+have been developing a tool that automatically translates generated stories
+into causal diagrams in the form of directed graphs. Nodes of the graph are
+actions in the story, and edges can be viewed as causal relationships
+between story events involving those actions.
+
+This tool takes a proof term and the story specification as inputs, and it
+generates the extrapolation of the let-binding illustration
+given in the previous section to the whole trace: we wind up with a causal
+network of action nodes representing the story's nonlinear progression of
+events, e.g.:
+
+\includegraphics[width=0.5\textwidth]{graph6}
+
+% These graphs have edges from \verb|init| to each action that requires
+% resources present in the initial environment.
+
+The tool also has an interface for {\em queries} on sets of traces. E.g.
+the query \verb|exists ending_1|
+would tell us the set of stories with \verb|ending_1| (a marriage and a
+death).
+This tool allows us to test our specifications for how closely they match
+our authorial intent. For instance, if we want to find out if any stories
+contain unfulfilled vengeance, we might issue the query
+
+%---e.g. perhaps we decide that we would not like to end
+%the story if there is a storyline in which a character became suicidal but
+%has not yet been comforted or performed suicide. We can observe the
+%violation of this causal circumstance in the graph, make changes to the
+%specification, and issue the query
+
+\begin{verbatim}
+exists do/thinkVengefully && ~link do/thinkVengefully do/murder
+\end{verbatim}
+
+(read as: there exists a ``think vengefully'' action, but there is no link
+between ``think vengefully'' and ``murder'')
+which might tell us that no stories satisfy the predicate. If we intend for
+vengeance to occur more or less frequently, we may tune the parameters of
+the rules (e.g. how many \verb|anger| atoms it generates) and run the query
+again.
+
+% \begin{figure*}
+% \caption{A graphical rendering of a Celf trace.
+% \label{fig:graph}}
+% \centering
+% \includegraphics[width=0.5\textwidth]{graph6}
+% \end{figure*}
+
+%%% This part didn't happen.
+% However, unlike Celf traces, which distinguish between multiple resources
+% of the same type (e.g. an \verb|anger| atom arising from a direct insult
+% or from an unfaithful lover), the tool uses a notion of proof
+% irrelevance~\cite{LeyWild07tr} to group the possible generators of a
+% resource in a disjunction, called an ``or-node.'' Multiple in-edges to a
+% (regular) node, then, unambiguously represent that the {\em conjunction}
+% of the resources is needed for that action.
+
+% XXX give a small illustration
+
+% In figure XXX, we show a full causal diagram for one trace of the example
+% specification.  (XXX some commentary?)
+
+
+\section{Ongoing Work}
+% \label{sec:ongoing}
+
+Suppose we wanted to treat the same logic program not as a random story
+generator but as an {\em interactive} story.  At a first cut, a player
+could interact with proof search by selecting a rule whenever proof search
+would otherwise select one randomly between several that apply. But in the
+interest of creating a more exploratory feel, rather than present a finite
+set of available story branches, we wish to follow the interactive fiction
+tradition of allowing a general {\em grammar} of actions. The action
+language for our example might correspond loosely to the available rules,
+e.g.
+
+\begin{verbatim}
+insult(C, C')  compliment(C, C')  flirt(C, C')  marry(C, C') 
+murder(C, C')  comfort(C, C')  suicide(C)  divorce(C, C') 
+\end{verbatim}
+
+Parameterizing actions over all of the characters they concern supposes an
+omnicient point of view where the interactor may control all characters. If
+we suppose a single-character point of view, then the first parameter
+\verb|C| in the actions above becomes implicit.
+After giving this language of actions, we can modify the original program
+so that the rules concerning, e.g., flirtation, take an extra precondition
+that an atom \verb|do(flirt(C, C'))| appears. This atom should be linear so
+that the rule only fires once.
+
+We are working on an extension to the core language underlying Celf that
+allows the introduction of action atoms by the player once the
+program has reached quiescence, which we believe soundly captures the idea
+of interpreter and interactor taking turns. We formalize this idea of
+turn-taking as a language construct called {\em
+phases}~\cite{Martens13:thesis-proposal}, which turn out to be generally
+useful for other engineering concerns, such as structuring a program into
+independent (module-like) components. Further, phases enable us to
+describe the {\em broadcast} behavior we were missing earlier: broadcast
+can be its own phase that iterates a rule to quiescence over all occupants
+of a room.
+After the introduction of phases, we believe the language will be suitable
+as the core of a system for authoring large, expressive works of
+interactive fiction and exploratory interactive simulation (``sandbox''
+games). In the context of a larger project, of course, we would also need
+tools for parsing and generating natural language.
+
+We are also developing a more complete suite of analysis capabilities, akin
+to model checking, that would allow authors to predict and control the
+range of narrative possibilities, perhaps choosing to restrict them to a
+more linear causality tree (in the case of a rigid narrative) or relax the
+constraints (in the case of a sandbox world).  We are designing a
+verification-like system overlaying the language wherein the author may, on
+a per-phase basis, write down properties (invariants, preconditions, and
+postconditions) to the logic program, which may then be automatically
+checked. An application of this functionality might include ensuring as an
+invariant that, whenever there is a locked door, a key is reachable from
+the player's location.
+
+\section{Summary of Contributions}
+% \label{sec:summary}
+
+We see this work as making the following contributions to
+narrative technologies:
+\begin{itemize}
+\item A programming language-based approach to authoring interactive
+stories, founded on a theory which yields an interpretation of stories as
+logical proofs.
+\item Demonstration of how said interpretation enables the {\em generation},
+{\em analysis}, and {\em interactive interpretation} of stories from
+story worlds. 
+\item Atop prior work in formalizing stories in linear logic,
+we show that this approach can be used not only for {\em validating}
+goal-driven story interactions but also for sculpting exploratory,
+reactive experiences.
+\end{itemize}
+
+Ongoing work should allow for combining exploratory and verificational
+approaches to authorship, laying the theoretical groundwork for a
+language for generative interactive fiction.
+
+\section{Acklowledgments}
+
+The authors thank the anonymous reviewers for their thorough and
+encouraging feedback. The first author thanks Frank Pfenning, Martin van Velsen,
+and Adam Smith for conversations that helped contextualize our work.
+
+% As evidenced by methods preferred by practicing authors including
+% logically-motivated languages such as Inform
+% 7~\footnote{\url{http://www.inform7.com}}, and continued interest in
+% interactive social simulation systems such as
+% Versu~\footnote{http://emshort.wordpress.com/2013/02/14/introducing-versu/}
+% (despite its recent cancelation), we see that the interactive storytelling
+% community is ready for an approach from a programming language point of
+% view for writing rule-based, generative story-worlds. We view this work as
+% a step toward laying the theoretical groundwork on which an ideal language,
+% in the sense of authoring concepts matching closely with language
+% constructs without sacrificing any generality of the language, could be
+% based.
+
+\bibliographystyle{aaai}
+\bibliography{main}
 
 \end{document}

@@ -7,8 +7,6 @@ leq : nat -> nat -> type.
 leq/z : leq z N.
 leq/s : leq (s N) (s M)
          <- leq N M.
-time : nat -> type.
-nchars : nat -> type.
 
 character : type.
 actor : character -> type.
@@ -28,13 +26,11 @@ wants : character -> object -> type.
 married : character -> character -> type.
 unmarried : character -> type.
 anger : character -> character -> type.
-% storge : character -> character -> type.
 eros : character -> character -> type.
 philia : character -> character -> type.
 neutral : character -> character -> type.
 depressed : character -> type.
 suicidal : character -> type.
-% bored : character -> type.
 boredom : type.
 
 % C travels to be near C'.
@@ -115,11 +111,36 @@ do/formOpinion/dislike
   neutral C C'
   -o {@at C L * @at C' L * @anger C C'}.
 
+do/compliment/private
+: actor C * actor C' *
+  at C L * at C' L * @philia C C' -o
+          {@at C L * @at C' L * @philia C C' * @philia C' C}.
+
+do/compliment/witnessed
+: actor C * actor C' * actor Witness *
+  at C L * at C' L * at Witness L * @philia C C' *
+  anger Witness C' -o
+          {@at C L * @at C' L * @at Witness L * @philia C C' * @anger Witness C'  
+            * @philia C' C * @anger Witness C}.
+
+do/insult/private
+: actor C * actor C' *
+  at C L * at C' L * anger C C' -o
+          {@at C L * @at C' L * @anger C C' * @anger C' C * @depressed C'}.
+
+do/insult/witnessed
+: actor C * actor C' * actor Witness *
+  at C L * at C' L * at Witness L * @anger C C' * philia Witness C' -o
+          {@at C L * @at C' L * @at Witness L * @anger C C' * 
+            @philia Witness C' * @anger C' C * @depressed C' * @anger Witness C}.
+
+%% Violence module
+
 do/murder 
 : actor C * actor C' *
   anger C C' * anger C C' * anger C C' * @anger C C' *
-  at C L * at C' L  * nchars (s N) * has C weapon
-                -o {@at C L * !dead C' * !murdered C C' * @nchars N *
+  at C L * at C' L  * has C weapon
+                -o {@at C L * !dead C' * !murdered C C' *
                       @has C weapon}.
 
 do/becomeSuicidal
@@ -131,17 +152,13 @@ do/becomeSuicidal
 do/comfort
 : actor C * actor C' *
   at C L * at C' L *
-  suicidal C' * philia C C' * @philia C' C
+  suicidal C' * philia C C' * philia C' C
   -o {@at C L * @at C' L * 
       @philia C C' * @philia C' C * @philia C' C}.
 
 do/suicide
 : actor C * 
-  at C L * 
-  suicidal C *
-  has C weapon *
-  nchars (s N)
- -o {@nchars N * !dead C}. 
+  at C L * suicidal C * has C weapon -o {!dead C}. 
 
 do/mourn 
 : actor C * actor C' *
@@ -170,45 +187,52 @@ do/loot
     at C L * dead C' * has C' O * wants C O
     -o {@at C L * @has C O}.
 
-do/compliment/private
-: actor C * actor C' *
-  at C L * at C' L * @philia C C' -o
-          {@at C L * @at C' L * @philia C C' * @philia C' C}.
-
-do/compliment/witnessed
-: actor C * actor C' * actor Witness *
-  at C L * at C' L * at Witness L * @philia C C' *
-  anger Witness C' -o
-          {@at C L * @at C' L * @at Witness L * @philia C C' * @anger Witness C'  
-            * @philia C' C * @anger Witness C}.
-
-do/insult/private
-: actor C * actor C' *
-  at C L * at C' L * @anger C C' -o
-          {@at C L * @at C' L * @anger C C' * @anger C' C * @depressed C'}.
-
-do/insult/witnessed
-: actor C * actor C' * actor Witness *
-  at C L * at C' L * at Witness L * @anger C C' * philia Witness C' -o
-          {@at C L * @at C' L * @at Witness L * @anger C C' * 
-            @philia Witness C' * @anger C' C * @depressed C' * @anger Witness C}.
-
-
 mixed_feelings 
 : actor C * actor C' * at C L * 
   anger C C' * philia C C' -o {@at C L * @neutral C C'}.
 
 %% stuff to force quiescence
-maxtime : nat =
-  s (s (s (s (s (s z))))).
-time_passes 
-  : time T * nchars (s N)
-    -o {@time (s T) * @nchars (s N) * @boredom}.
-story_over : nchars z * time z -o {1}.
-die_of_old_age 
-: actor C *
-  at C L * time T * nchars (s N) * leq maxtime T 
-  -o {!dead C * @time z * @nchars N}.
+% maxtime : nat =
+%   s (s (s (s (s (s z))))).
+% time_passes 
+%   : time T * nchars (s N)
+%     -o {@time (s T) * @nchars (s N) * @boredom}.
+% story_over : nchars z * time z -o {1}.
+% die_of_old_age 
+% : actor C *
+%   at C L * time T * nchars (s N) * leq maxtime T 
+%   -o {!dead C * @time z * @nchars N}.
+
+nonfinal : type.
+final : type. % story ends with wedding.
+
+ending_1 % a marriage and a death
+: nonfinal *
+  actor C1 * actor C2 * actor C3 *
+  at C1 L * married C1 C2 * dead C3
+  -o {final}.
+
+ending_2 % love triangle
+: nonfinal *
+  actor C1 * actor C2 * actor C3 *
+  eros C1 C2 * eros C2 C3 * eros C3 C1
+  -o {final}.
+
+ending_3 % vengeance
+: nonfinal *
+  actor C1 * actor C2 * actor C3 *
+  murdered C1 C2 * philia C3 C2 * murdered C3 C1
+  -o {final}.
+
+%% cleanup...
+cleanup/1 : final * at _ _ -o {final}.
+% cleanup/2 : final * has _ _ -o {final}.
+% cleanup/3 : final * wants _ _ -o {final}.
+% cleanup/4 : final * married _ _ -o {final}.
+% cleanup/5 : final * unmarried _ -o {final}.
+% cleanup/6 : final * anger _ _ -o {final}.
+% cleanup/7 : final * eros _ _ -o {final}.
+% cleanup/8 : final * philia _ _ -o {final}.
 
 
 % story-specific terms.
@@ -266,9 +290,11 @@ init : type
   * @neutral nurse romeo
   * @neutral mercutio juliet * @neutral juliet mercutio
   * @neutral apothecary nurse * @neutral nurse apothecary
+           
+  * nonfinal}.
 
-  * @time z * @nchars (s (s (s (s (s (s (s (s z))))))))}.
+  % * @time z * @nchars (s (s (s (s (s (s (s (s z))))))))}.
 
 % #trace * init.
-#query * * * 5 init -o {1}.
+#query * * * 10 init -o {final}.
 
